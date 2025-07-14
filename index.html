@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro-ish Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Pomodoro-ish Timer</h1>
+        </header>
+        
+        <div class="timer-creator">
+            <h2>Create New Timer</h2>
+            <div class="creator-form">
+                <input type="text" id="timer-label" placeholder="Timer label (e.g., Work Session)" required>
+                <input type="number" id="timer-duration" placeholder="Duration in minutes" min="1" max="180" value="25" required>
+                <button id="create-timer-btn">Create Timer</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="active">Active Timers</button>
+            <button class="tab-btn" data-tab="done">Done Timers</button>
+        </div>
+
+        <div class="timer-lists">
+            <div id="active-timers" class="timer-list active">
+                <div class="bulk-actions">
+                    <button id="bulk-delete-btn">Delete Selected</button>
+                </div>
+                <div id="active-timers-list"></div>
+            </div>
+            
+            <div id="done-timers" class="timer-list">
+                <div class="bulk-actions">
+                    <button id="bulk-delete-done-btn">Delete Selected</button>
+                </div>
+                <div id="done-timers-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 
