@@ -4,39 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pomodoro-ish Timer</title>
+    
+    <!-- Font imports -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        roboto: ['Roboto', 'sans-serif'],
+                    },
+                    fontSize: {
+                        base: '2rem',
+                        heading: '3rem',
+                    },
+                    colors: {
+                        accent: '#007aff',
+                    },
+                }
+            }
+        }
+    </script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Pomodoro-ish Timer</h1>
+<body class="font-inter bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto max-w-4xl px-6 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-heading font-bold text-gray-800 mb-4">Pomodoro-ish Timer</h1>
+            <p class="text-xl text-gray-600">Focus.</p>
         </header>
         
-        <div class="timer-creator">
-            <h2>Create New Timer</h2>
-            <div class="creator-form">
-                <input type="text" id="timer-label" placeholder="Timer label (e.g., Work Session)" required>
-                <input type="number" id="timer-duration" placeholder="Duration in minutes" min="1" max="180" value="25" required>
-                <button id="create-timer-btn">Create Timer</button>
+        <div class="timer-creator bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Create New Timer</h2>
+            <div class="creator-form flex flex-col md:flex-row gap-4">
+                <input type="text" id="timer-label" 
+                       class="flex-1 px-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-accent focus:outline-none transition-colors" 
+                       placeholder="Timer label (e.g., Work Session)" required>
+                <input type="number" id="timer-duration" 
+                       class="flex-1 md:flex-none md:w-48 px-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-accent focus:outline-none transition-colors" 
+                       placeholder="Duration in minutes" min="1" max="180" value="25" required>
+                <button id="create-timer-btn" 
+                        class="bg-accent text-white px-8 py-4 text-lg font-medium rounded-xl hover:bg-blue-600 transition-colors whitespace-nowrap">
+                    Create Timer
+                </button>
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="active">Active Timers</button>
-            <button class="tab-btn" data-tab="done">Done Timers</button>
+        <div class="tabs bg-white rounded-2xl shadow-lg p-2 mb-8">
+            <div class="flex">
+                <button class="tab-btn active flex-1 py-4 px-6 text-lg font-medium rounded-xl transition-all" data-tab="active">
+                    Active Timers
+                </button>
+                <button class="tab-btn flex-1 py-4 px-6 text-lg font-medium rounded-xl transition-all" data-tab="done">
+                    Done Timers
+                </button>
+            </div>
         </div>
 
         <div class="timer-lists">
-            <div id="active-timers" class="timer-list active">
-                <div class="bulk-actions">
-                    <button id="bulk-delete-btn">Delete Selected</button>
+            <div id="active-timers" class="timer-list active bg-white rounded-2xl shadow-lg p-8">
+                <div class="bulk-actions mb-6 pb-6 border-b border-gray-200">
+                    <button id="bulk-delete-btn" 
+                            class="bg-red-500 text-white px-6 py-3 text-base font-medium rounded-xl hover:bg-red-600 transition-colors">
+                        Delete Selected
+                    </button>
                 </div>
                 <div id="active-timers-list"></div>
             </div>
             
-            <div id="done-timers" class="timer-list">
-                <div class="bulk-actions">
-                    <button id="bulk-delete-done-btn">Delete Selected</button>
+            <div id="done-timers" class="timer-list bg-white rounded-2xl shadow-lg p-8">
+                <div class="bulk-actions mb-6 pb-6 border-b border-gray-200">
+                    <button id="bulk-delete-done-btn" 
+                            class="bg-red-500 text-white px-6 py-3 text-base font-medium rounded-xl hover:bg-red-600 transition-colors">
+                        Delete Selected
+                    </button>
                 </div>
                 <div id="done-timers-list"></div>
             </div>

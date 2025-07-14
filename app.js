@@ -218,35 +218,49 @@ class TimerApp {
 			timer.status === "done" ? timer.timeSpent : timer.remainingTime;
 		const timeLabel = timer.status === "done" ? "Time spent: " : "";
 
+		// Timer item classes
+		const timerItemClasses = `bg-gray-50 border border-gray-200 rounded-xl p-6 mb-4 flex items-center gap-4 transition-all duration-200 hover:shadow-md hover:bg-white hover:transform hover:-translate-y-0.5 ${
+			timer.status === "done" ? "bg-green-50 border-green-200" : ""
+		}`;
+
+		// Status classes
+		const statusClasses = {
+			running: "bg-green-100 text-green-800",
+			paused: "bg-yellow-100 text-yellow-800",
+			done: "bg-blue-100 text-blue-800",
+		};
+
 		return `
-            <div class="timer-item ${statusClass}">
-                <input type="checkbox" class="timer-checkbox" data-id="${
+            <div class="timer-item ${statusClass} ${timerItemClasses}">
+                <input type="checkbox" class="timer-checkbox w-5 h-5 cursor-pointer" data-id="${
 									timer.id
-								}">
-                <div class="timer-info">
-                    <div class="timer-label">${timer.label}</div>
-                    <div class="timer-time">${timeLabel}${this.formatTime(
-			displayTime
-		)}</div>
+								}" style="accent-color: #007aff;">
+                <div class="timer-info flex-1">
+                    <div class="timer-label text-xl font-semibold text-gray-800 mb-2">${
+											timer.label
+										}</div>
+                    <div class="timer-time text-2xl font-bold font-roboto tracking-tight ${
+											timer.status === "done" ? "text-green-600" : "text-accent"
+										}">${timeLabel}${this.formatTime(displayTime)}</div>
                 </div>
-                <div class="timer-status status-${
-									timer.status
+                <div class="timer-status text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+									statusClasses[timer.status]
 								}">${statusText}</div>
-                <div class="timer-controls">
+                <div class="timer-controls flex gap-2 flex-wrap">
                     ${
 											timer.status !== "done"
 												? `
-                        <button class="start-btn" onclick="app.startTimer('${
+                        <button class="start-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-green-500 text-white hover:bg-green-600 hover:transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none" onclick="app.startTimer('${
 													timer.id
 												}')" ${timer.status === "running" ? "disabled" : ""}>
                             Start
                         </button>
-                        <button class="pause-btn" onclick="app.pauseTimer('${
+                        <button class="pause-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-yellow-500 text-white hover:bg-yellow-600 hover:transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none" onclick="app.pauseTimer('${
 													timer.id
 												}')" ${timer.status === "paused" ? "disabled" : ""}>
                             Pause
                         </button>
-                        <button class="done-btn" onclick="app.markTimerAsDone('${
+                        <button class="done-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-blue-500 text-white hover:bg-blue-600 hover:transform hover:-translate-y-0.5" onclick="app.markTimerAsDone('${
 													timer.id
 												}')">
                             Mark as Done
@@ -254,7 +268,7 @@ class TimerApp {
                     `
 												: ""
 										}
-                    <button class="delete-btn" onclick="app.deleteTimer('${
+                    <button class="delete-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-red-500 text-white hover:bg-red-600 hover:transform hover:-translate-y-0.5" onclick="app.deleteTimer('${
 											timer.id
 										}')">
                         Delete
