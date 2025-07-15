@@ -43,6 +43,24 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Auto-completion suggestions */
+.suggestion-item {
+    transition: background-color 0.15s ease;
+}
+
+.suggestion-item.highlighted {
+    background-color: #007aff !important;
+    color: white !important;
+}
+
+.suggestion-item:hover {
+    background-color: #f3f4f6;
+}
+
+.suggestion-item.highlighted:hover {
+    background-color: #007aff !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .timer-item {

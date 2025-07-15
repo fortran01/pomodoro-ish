@@ -397,6 +397,118 @@ class TimerApp {
     document.getElementById(`${tab}-timers`).classList.add("active");
   }
 
+  // Auto-completion functionality
+  getUniquePreviousLabels() {
+    const labels = this.timers.map((timer) => timer.label);
+    return [...new Set(labels)].sort();
+  }
+
+  getUniquePreviousDurations() {
+    const durations = this.timers.map((timer) =>
+      Math.floor(timer.totalTime / 60)
+    );
+    return [...new Set(durations)].sort((a, b) => a - b);
+  }
+
+  showLabelSuggestions(inputValue) {
+    const suggestions = this.getUniquePreviousLabels();
+    const filtered = suggestions.filter((label) =>
+      label.toLowerCase().includes(inputValue.toLowerCase())
+    );
+
+    const container = document.getElementById("label-suggestions");
+
+    if (filtered.length === 0 || inputValue === "") {
+      container.classList.add("hidden");
+      return;
+    }
+
+    container.innerHTML = filtered
+      .map(
+        (label) =>
+          `<div class="suggestion-item px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" data-value="${label}">
+        ${label}
+      </div>`
+      )
+      .join("");
+
+    container.classList.remove("hidden");
+  }
+
+  showDurationSuggestions(inputValue) {
+    const suggestions = this.getUniquePreviousDurations();
+    const filtered = suggestions.filter((duration) =>
+      duration.toString().includes(inputValue)
+    );
+
+    const container = document.getElementById("duration-suggestions");
+
+    if (filtered.length === 0 || inputValue === "") {
+      container.classList.add("hidden");
+      return;
+    }
+
+    container.innerHTML = filtered
+      .map(
+        (duration) =>
+          `<div class="suggestion-item px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" data-value="${duration}">
+        ${duration} minutes
+      </div>`
+      )
+      .join("");
+
+    container.classList.remove("hidden");
+  }
+
+  hideSuggestions() {
+    document.getElementById("label-suggestions").classList.add("hidden");
+    document.getElementById("duration-suggestions").classList.add("hidden");
+  }
+
+  handleSuggestionKeydown(e, containerId) {
+    const container = document.getElementById(containerId);
+    if (container.classList.contains("hidden")) return;
+
+    const suggestions = container.querySelectorAll(".suggestion-item");
+    const highlighted = container.querySelector(".suggestion-item.highlighted");
+    let currentIndex = highlighted
+      ? Array.from(suggestions).indexOf(highlighted)
+      : -1;
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        if (highlighted) highlighted.classList.remove("highlighted");
+        currentIndex = (currentIndex + 1) % suggestions.length;
+        suggestions[currentIndex].classList.add("highlighted");
+        suggestions[currentIndex].scrollIntoView({ block: "nearest" });
+        break;
+
+      case "ArrowUp":
+        e.preventDefault();
+        if (highlighted) highlighted.classList.remove("highlighted");
+        currentIndex =
+          currentIndex <= 0 ? suggestions.length - 1 : currentIndex - 1;
+        suggestions[currentIndex].classList.add("highlighted");
+        suggestions[currentIndex].scrollIntoView({ block: "nearest" });
+        break;
+
+      case "Enter":
+        e.preventDefault();
+        if (highlighted) {
+          highlighted.click();
+        } else if (suggestions.length > 0) {
+          suggestions[0].click();
+        }
+        break;
+
+      case "Escape":
+        e.preventDefault();
+        this.hideSuggestions();
+        break;
+    }
+  }
+
   // Event listeners
   setupEventListeners() {
     // Create timer
@@ -413,12 +525,73 @@ class TimerApp {
           this.createTimer(label, duration);
           labelInput.value = "";
           durationInput.value = "25";
+          this.hideSuggestions();
         }
       });
+
+    // Auto-completion for label input
+    const labelInput = document.getElementById("timer-label");
+    labelInput.addEventListener("input", (e) => {
+      this.showLabelSuggestions(e.target.value);
+    });
+
+    labelInput.addEventListener("focus", (e) => {
+      this.showLabelSuggestions(e.target.value);
+    });
+
+    // Auto-completion for duration input
+    const durationInput = document.getElementById("timer-duration");
+    durationInput.addEventListener("input", (e) => {
+      this.showDurationSuggestions(e.target.value);
+    });
+
+    durationInput.addEventListener("focus", (e) => {
+      this.showDurationSuggestions(e.target.value);
+    });
+
+    // Handle suggestion clicks
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("suggestion-item")) {
+        const value = e.target.dataset.value;
+        const container = e.target.parentElement;
+
+        if (container.id === "label-suggestions") {
+          labelInput.value = value;
+          labelInput.focus();
+        } else if (container.id === "duration-suggestions") {
+          durationInput.value = value;
+          durationInput.focus();
+        }
+
+        this.hideSuggestions();
+      } else if (!e.target.closest(".timer-creator")) {
+        // Hide suggestions when clicking outside
+        this.hideSuggestions();
+      }
+    });
+
+    // Keyboard navigation for suggestions
+    labelInput.addEventListener("keydown", (e) => {
+      this.handleSuggestionKeydown(e, "label-suggestions");
+    });
+
+    durationInput.addEventListener("keydown", (e) => {
+      this.handleSuggestionKeydown(e, "duration-suggestions");
+    });
 
     // Enter key for timer creation
     document.getElementById("timer-label").addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
+        const suggestions = document.getElementById("label-suggestions");
+        if (!suggestions.classList.contains("hidden")) {
+          const firstSuggestion =
+            suggestions.querySelector(".suggestion-item.highlighted") ||
+            suggestions.querySelector(".suggestion-item");
+          if (firstSuggestion) {
+            firstSuggestion.click();
+            return;
+          }
+        }
         document.getElementById("create-timer-btn").click();
       }
     });
@@ -427,6 +600,16 @@ class TimerApp {
       .getElementById("timer-duration")
       .addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
+          const suggestions = document.getElementById("duration-suggestions");
+          if (!suggestions.classList.contains("hidden")) {
+            const firstSuggestion =
+              suggestions.querySelector(".suggestion-item.highlighted") ||
+              suggestions.querySelector(".suggestion-item");
+            if (firstSuggestion) {
+              firstSuggestion.click();
+              return;
+            }
+          }
           document.getElementById("create-timer-btn").click();
         }
       });
