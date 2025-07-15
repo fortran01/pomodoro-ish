@@ -412,7 +412,7 @@ class TimerApp {
         if (label && duration > 0) {
           this.createTimer(label, duration);
           labelInput.value = "";
-          durationInput.value = "";
+          durationInput.value = "25";
         }
       });
 
