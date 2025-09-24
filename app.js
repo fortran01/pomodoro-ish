@@ -1,4 +1,4 @@
-// Timer Application
+// Timer Application - Updated timer completion behavior
 class TimerApp {
   constructor() {
     this.timers = [];
