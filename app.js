@@ -75,7 +75,7 @@ class TimerApp {
   // Timer controls
   startTimer(id) {
     const timer = this.timers.find((t) => t.id === id);
-    if (timer && timer.status !== "done") {
+    if (timer && timer.status !== "done" && timer.status !== "completed") {
       timer.status = "running";
       this.saveTimers();
       this.render();
@@ -94,12 +94,16 @@ class TimerApp {
   markTimerAsDone(id) {
     const timer = this.timers.find((t) => t.id === id);
     if (timer && timer.status !== "done") {
+      const wasCompleted = timer.status === "completed";
       timer.timeSpent = timer.totalTime - timer.remainingTime;
       timer.status = "done";
       timer.remainingTime = 0;
       this.saveTimers();
       this.render();
-      this.showNotification(timer.label);
+      // Don't show notification again if timer was already completed
+      if (!wasCompleted) {
+        this.showNotification(timer.label);
+      }
     }
   }
 
@@ -163,7 +167,7 @@ class TimerApp {
 
         if (timer.remainingTime <= 0) {
           timer.remainingTime = 0;
-          timer.status = "done";
+          timer.status = "completed";
           this.showNotification(timer.label);
         }
       }
@@ -324,20 +328,22 @@ class TimerApp {
     const statusText =
       timer.status.charAt(0).toUpperCase() + timer.status.slice(1);
 
-    // Show time spent for done timers, remaining time for active timers
+    // Show time spent for done/completed timers, remaining time for active timers
     const displayTime =
-      timer.status === "done" ? timer.timeSpent : timer.remainingTime;
-    const timeLabel = timer.status === "done" ? "Time spent: " : "";
+      timer.status === "done" || timer.status === "completed" ? timer.timeSpent : timer.remainingTime;
+    const timeLabel = timer.status === "done" || timer.status === "completed" ? "Time spent: " : "";
 
     // Timer item classes
     const timerItemClasses = `bg-gray-50 border border-gray-200 rounded-xl p-6 mb-4 flex items-center gap-4 transition-all duration-200 hover:shadow-md hover:bg-white hover:transform hover:-translate-y-0.5 ${
-      timer.status === "done" ? "bg-green-50 border-green-200" : ""
+      timer.status === "done" ? "bg-green-50 border-green-200" :
+      timer.status === "completed" ? "bg-orange-50 border-orange-200" : ""
     }`;
 
     // Status classes
     const statusClasses = {
       running: "bg-green-100 text-green-800",
       paused: "bg-yellow-100 text-yellow-800",
+      completed: "bg-orange-100 text-orange-800",
       done: "bg-blue-100 text-blue-800",
     };
 
@@ -351,7 +357,8 @@ class TimerApp {
                       timer.label
                     }</div>
                     <div class="timer-time text-2xl font-bold font-roboto tracking-tight ${
-                      timer.status === "done" ? "text-green-600" : "text-accent"
+                      timer.status === "done" ? "text-green-600" :
+                      timer.status === "completed" ? "text-orange-600" : "text-accent"
                     }">${timeLabel}${this.formatTime(displayTime)}</div>
                 </div>
                 <div class="timer-status text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
@@ -359,7 +366,15 @@ class TimerApp {
                 }">${statusText}</div>
                 <div class="timer-controls flex gap-2 flex-wrap">
                     ${
-                      timer.status !== "done"
+                      timer.status === "completed"
+                        ? `
+                        <button class="done-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-blue-500 text-white hover:bg-blue-600 hover:transform hover:-translate-y-0.5" onclick="app.markTimerAsDone('${
+                          timer.id
+                        }')">
+                            Mark as Done
+                        </button>
+                    `
+                        : timer.status !== "done"
                         ? `
                         <button class="start-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-green-500 text-white hover:bg-green-600 hover:transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none" onclick="app.startTimer('${
                           timer.id
@@ -400,10 +415,10 @@ class TimerApp {
         const timeDisplay = item.querySelector(".timer-time");
         const statusDisplay = item.querySelector(".timer-status");
 
-        // Show time spent for done timers, remaining time for active timers
+        // Show time spent for done/completed timers, remaining time for active timers
         const displayTime =
-          timer.status === "done" ? timer.timeSpent : timer.remainingTime;
-        const timeLabel = timer.status === "done" ? "Time spent: " : "";
+          timer.status === "done" || timer.status === "completed" ? timer.timeSpent : timer.remainingTime;
+        const timeLabel = timer.status === "done" || timer.status === "completed" ? "Time spent: " : "";
         timeDisplay.textContent = timeLabel + this.formatTime(displayTime);
         statusDisplay.textContent =
           timer.status.charAt(0).toUpperCase() + timer.status.slice(1);
