@@ -115,4 +115,6 @@ Thumbs.db
 
 # Build outputs
 build/
-dist/ 
+dist/
+
+.claude/

@@ -4,12 +4,17 @@ class TimerApp {
     this.timers = [];
     this.intervalId = null;
     this.currentTab = "active";
+    this.worker = null;
+    this.lastTickTime = Date.now();
+    this.isPageVisible = !document.hidden;
     this.init();
   }
 
   init() {
     this.loadTimers();
     this.setupEventListeners();
+    this.setupWorker();
+    this.setupPageVisibility();
     this.startMainLoop();
     this.render();
   }
@@ -137,27 +142,115 @@ class TimerApp {
   // Timer countdown logic
   startMainLoop() {
     this.intervalId = setInterval(() => {
-      let hasRunningTimers = false;
+      this.processTimerTick();
+    }, 1000);
+  }
 
-      this.timers.forEach((timer) => {
-        if (timer.status === "running") {
-          hasRunningTimers = true;
-          timer.remainingTime--;
-          timer.timeSpent++;
+  processTimerTick() {
+    const now = Date.now();
+    const timeDiff = Math.floor((now - this.lastTickTime) / 1000);
+    this.lastTickTime = now;
 
-          if (timer.remainingTime <= 0) {
-            timer.remainingTime = 0;
-            timer.status = "done";
-            this.showNotification(timer.label);
-          }
+    let hasRunningTimers = false;
+
+    this.timers.forEach((timer) => {
+      if (timer.status === "running") {
+        hasRunningTimers = true;
+        // Handle multiple seconds if tab was in background
+        const secondsToSubtract = Math.max(1, timeDiff);
+        timer.remainingTime -= secondsToSubtract;
+        timer.timeSpent += secondsToSubtract;
+
+        if (timer.remainingTime <= 0) {
+          timer.remainingTime = 0;
+          timer.status = "done";
+          this.showNotification(timer.label);
+        }
+      }
+    });
+
+    if (hasRunningTimers) {
+      this.saveTimers();
+      this.updateTimerDisplays();
+    }
+
+    // Update worker status based on running timers
+    this.updateWorkerStatus(hasRunningTimers);
+  }
+
+  // Web Worker setup and management
+  setupWorker() {
+    if (typeof Worker !== 'undefined') {
+      this.worker = new Worker('timer-worker.js');
+
+      this.worker.addEventListener('message', (e) => {
+        const { type } = e.data;
+
+        switch(type) {
+          case 'ready':
+            console.log('Timer worker ready');
+            break;
+          case 'tick':
+            // Process timer updates when receiving worker tick
+            if (!this.isPageVisible) {
+              this.processTimerTick();
+            }
+            break;
+          case 'status':
+            // Worker status received
+            break;
         }
       });
 
-      if (hasRunningTimers) {
-        this.saveTimers();
-        this.updateTimerDisplays();
+      this.worker.addEventListener('error', (error) => {
+        console.error('Worker error:', error);
+        // Fallback to regular intervals if worker fails
+      });
+    }
+  }
+
+  updateWorkerStatus(hasRunningTimers) {
+    if (this.worker) {
+      if (hasRunningTimers && !this.isPageVisible) {
+        this.worker.postMessage({ type: 'start' });
+      } else {
+        this.worker.postMessage({ type: 'stop' });
       }
-    }, 1000);
+    }
+  }
+
+  // Page Visibility API setup
+  setupPageVisibility() {
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+      const wasVisible = this.isPageVisible;
+      this.isPageVisible = !document.hidden;
+
+      if (wasVisible && !this.isPageVisible) {
+        // Page became hidden
+        console.log('Page hidden - starting background worker');
+        this.lastTickTime = Date.now();
+        const hasRunningTimers = this.timers.some(timer => timer.status === 'running');
+        this.updateWorkerStatus(hasRunningTimers);
+      } else if (!wasVisible && this.isPageVisible) {
+        // Page became visible
+        console.log('Page visible - stopping background worker');
+        this.updateWorkerStatus(false);
+        // Sync up any time that passed while in background
+        this.processTimerTick();
+      }
+    });
+
+    // Handle window focus/blur for additional coverage
+    window.addEventListener('blur', () => {
+      this.lastTickTime = Date.now();
+    });
+
+    window.addEventListener('focus', () => {
+      if (this.isPageVisible) {
+        this.processTimerTick();
+      }
+    });
   }
 
   // Notification
